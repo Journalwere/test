@@ -551,4 +551,4 @@ def create_post_api():
 
 
 if __name__ == '__main__':
-    socketio.run(application, debug=True)
+    application.run(debug=True)
