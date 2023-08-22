@@ -11,11 +11,10 @@ from psycopg2.extras import NamedTupleCursor
 from werkzeug.utils import secure_filename
 import os
 
-app = application
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-socketio = SocketIO(app, async_mode='gevent')
-CORS(app)
+application = Flask(__name__)
+application.config['SECRET_KEY'] = 'your_secret_key'
+socketio = SocketIO(application, async_mode='gevent')
+CORS(application)
 
 # PostgreSQL connection configuration
 db_connection = psycopg2.connect(
@@ -123,7 +122,7 @@ def get_pending_friend_requests(user_id):
         sender_id = request[0]
         sender = find_user_by_id(sender_id)
         if sender:
-            pending_requests_with_user_info.append(sender)
+            pending_requests_with_user_info.applicationend(sender)
 
     return pending_requests_with_user_info
 
@@ -151,7 +150,7 @@ def fetch_friends(user_id):
                 'email': friend[2]
                 # Add other user information as needed
             }
-            friend_list.append(friend_info)
+            friend_list.applicationend(friend_info)
 
         return friend_list
 
@@ -186,13 +185,13 @@ def get_media_type(filename):
     return None 
 
 # Home page route
-@app.route('/')
+@application.route('/')
 def home():
     return render_template('index.html')
 
 #############################################################LOGIN/REGISTER###########################################################################
 # User registration route
-@app.route('/register', methods=['GET', 'POST'])
+@application.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         # Get form data
@@ -235,7 +234,7 @@ def register():
 
 
 # User login route
-@app.route('/login', methods=['GET', 'POST'])
+@application.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         # Get form data
@@ -270,19 +269,19 @@ def login():
 ######################################################################################################################################################
 
 # Main page route (restricted, user must be logged in to access)
-@app.route('/main')
+@application.route('/main')
 @login_required
 def main_page():
     return render_template('main.html')
 
 # chat route
-@app.route('/friends_list', methods=['POST'])
+@application.route('/friends_list', methods=['POST'])
 @login_required
 def friends_list():
     return render_template('friends_pending_list.html')
 ###################################################################API#################################################################################
 # Route to handle the API request to find a user by username
-@app.route('/api/users/<username>', methods=['GET'])
+@application.route('/api/users/<username>', methods=['GET'])
 @login_required
 def find_user(username):
     user = search_users_in_database(username)
@@ -298,12 +297,12 @@ def find_user(username):
         }
         return jsonify(user_info)
     else:
-        # If the user is not found, return a JSON response with an appropriate message
+        # If the user is not found, return a JSON response with an applicationropriate message
         return jsonify({'error': 'User not found'}), 404
 
 
 # API route to handle adding a friend
-@app.route('/api/add_friend/<string:friend_username>', methods=['POST'])
+@application.route('/api/add_friend/<string:friend_username>', methods=['POST'])
 @login_required
 def add_friend(friend_username):
     current_user_id = session['user_id']
@@ -334,7 +333,7 @@ def add_friend(friend_username):
     else:
         return jsonify({'success': False, 'message': message}), 400
 
-@app.route('/api/accept_friend/<int:friendship_id>', methods=['PUT'])
+@application.route('/api/accept_friend/<int:friendship_id>', methods=['PUT'])
 @login_required
 def update_friendship_status(friendship_id):
     try:
@@ -356,7 +355,7 @@ def update_friendship_status(friendship_id):
         return jsonify({"error": "Failed to update friendship status"}), 500
 
 
-@app.route('/api/pending_friend_list', methods=['GET'])
+@application.route('/api/pending_friend_list', methods=['GET'])
 def get_friend_list():
     try:
         current_user_id = session['user_id']  # Assuming you have a way to get the current user's ID
@@ -374,7 +373,7 @@ def get_friend_list():
         friend_list = []
         for row in cursor.fetchall():
             friend_id, username, profile_picture = row
-            friend_list.append({
+            friend_list.applicationend({
                 'id': friend_id,
                 'name': username,
                 'profilePicture': profile_picture
@@ -387,7 +386,7 @@ def get_friend_list():
     except Exception as e:
         return jsonify({'error': 'Failed to fetch friend list.', 'message': str(e)}), 500
     
-@app.route('/api/friends', methods=['GET'])
+@application.route('/api/friends', methods=['GET'])
 @login_required
 def get_friends():
     current_user_id = session.get('user_id')
@@ -398,7 +397,7 @@ def get_friends():
         return jsonify({'error': 'User not authenticated'}), 401
 
 ##################################################################CHAT#################################################################################
-@app.route('/private_chat/<int:friend_id>')
+@application.route('/private_chat/<int:friend_id>')
 @login_required
 def private_chatroom(friend_id):
     # Fetch the current user's information from the database using the user_id from the session
@@ -417,7 +416,7 @@ def private_chatroom(friend_id):
     # Render the private chatroom template with the user and friend information
     return render_template('private_chatroom.html', user=user, friend=friend)
 
-@app.route('/api/friends/<int:friend_id>/username')
+@application.route('/api/friends/<int:friend_id>/username')
 @login_required
 def get_friend_username(friend_id):
     cursor = db_connection.cursor()
@@ -426,7 +425,7 @@ def get_friend_username(friend_id):
     cursor.close()
     return jsonify({'username': friend_username})
 
-@app.route('/group_chat/<int:group_id>')
+@application.route('/group_chat/<int:group_id>')
 @login_required
 def group_chat(group_id):
     # Fetch the current user's information from the database using the user_id from the session
@@ -442,7 +441,7 @@ def group_chat(group_id):
     return render_template('group_chat.html', user=user, group_id=group_id, messages=messages)
 ######################################################################profile#######################################################################
 
-@app.route('/profile')
+@application.route('/profile')
 @login_required
 def profile():
     # Fetch the user's information from the database using the user_id from the session
@@ -456,7 +455,7 @@ def profile():
     # Assuming the column order is: id, username, email, password, profile_image, bio
     return render_template('profile.html', username=user[1], email=user[2], profile_image=user[4], bio=user[5])
 
-@app.route('/update_profile', methods=['POST'])
+@application.route('/update_profile', methods=['POST'])
 @login_required
 def update_profile():
     # Get the form data submitted by the user
@@ -474,7 +473,7 @@ def update_profile():
     # Redirect the user back to the profile page after the update
     return redirect(url_for('profile'))
 
-@app.route('/logout')
+@application.route('/logout')
 def logout():
     # Clear the user's session data
     session.clear()
@@ -483,7 +482,7 @@ def logout():
     return redirect(url_for('login'))
 ######################################################################################################################################################
 
-@app.route('/friends', methods=['GET'])
+@application.route('/friends', methods=['GET'])
 @login_required
 def chat():
     return render_template('friend_list.html')
@@ -509,17 +508,17 @@ def message(data):
     else:
         emit('message', {'username': 'Unknown User', 'message': data['message']}, room=data['room'])
 
-@app.route('/create_post', methods=['GET'])
+@application.route('/create_post', methods=['GET'])
 @login_required
 def create_post():
     return render_template('create_post.html')
 
-@app.route('/create_post', methods=['GET'])
+@application.route('/create_post', methods=['GET'])
 @login_required
 def create_post_page():
     return render_template('create_post.html')
 
-@app.route('/api/create_post', methods=['POST'])
+@application.route('/api/create_post', methods=['POST'])
 @login_required
 def create_post_api():
     content = request.form.get('content')
@@ -533,7 +532,7 @@ def create_post_api():
         filename = secure_filename(media_file.filename)
         media_type = get_media_type(filename)
         # Save the file to a desired directory (adjust the path accordingly)
-        media_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        media_file.save(os.path.join(application.config['UPLOAD_FOLDER'], filename))
     else:
         media_type = None
 
@@ -552,4 +551,4 @@ def create_post_api():
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(application, debug=True)
