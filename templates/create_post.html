@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Post</title>
+</head>
+<body>
+    <h1>Create a New Post</h1>
+    <form id="create-post-form">
+        <label>
+            Content:
+            <textarea id="content"></textarea>
+        </label>
+        <br />
+        <label>
+            Select Media File:
+            <input type="file" id="mediaFile" accept=".jpg, .jpeg, .png, .gif, .mp4, .mov" />
+        </label>
+        <br />
+        <label>
+            Privacy:
+            <select id="privacy">
+                <option value="public">Public</option>
+                <option value="friends">Friends</option>
+                <option value="private">Private</option>
+            </select>
+        </label>
+        <br />
+        <button type="button" id="create-post-btn">Create Post</button>
+    </form>
+    <div id="response-message"></div>
+    <script src="../static/create_post.js"></script>
+</body>
+</html>

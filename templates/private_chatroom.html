@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Private Chatroom</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    
+    
+    <div id="chat" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; max-height: 300px; overflow-y: auto;"></div>
+    
+    <div style="margin-top: 20px;">
+        <input type="text" id="message" />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Include the SocketIO script before the main script -->
+    <script type="module">
+        import nanoid from 'https://cdn.jsdelivr.net/npm/nanoid@4.0.2/+esm'
+        </script>
+    <script src="../static/chatroom.js"></script>
+</body>
+</html>

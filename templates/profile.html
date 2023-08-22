@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile Page</title>
+</head>
+<body>
+    <h2>Welcome, {{ username }}!</h2>
+    <img src="{{ profile_image }}" alt="Profile Image">
+    <form action="{{ url_for('update_profile') }}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" name="username" value="{{ username }}">
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" name="email" value="{{ email }}">
+        <br>
+        <label for="bio">Bio:</label>
+        <textarea name="bio">{{ bio }}</textarea>
+        <br>
+        <input type="submit" value="Update">
+    </form>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>

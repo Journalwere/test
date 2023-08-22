@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <title>Journalwhere</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="google" content="notranslate">
+    <meta name="google" content="nositelinkssearchbox">
+    <meta name="google" content="notranslate">
+    <meta name="google" content="nositelinkssearchbox">
+    <meta name="google" content="nositelinkssearchbox">
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <link rel="stylesheet" type="text/css" href="../static/main.css" />
+    <script type="module" src="../static/main.js"></script>
+    <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCx2WMtxuCdiH5LGcQnVJaQvKq5S5Yj0FQ&region=US&language=en"
+    defer
+   ></script>
+  </head>
+  <body>
+    <h1>User Search</h1>
+    <form action="/friends_list" method="POST">
+        <input type="submit" value="friend-list">
+    </form>
+    <form action="/friends" method="GET">
+      <input type="submit" value="friends">
+    </form>
+    <!--The div element for the map -->
+    <div id="map"></div>
+  </body>
+</html>
