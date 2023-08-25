@@ -10,6 +10,7 @@ from passlib.hash import pbkdf2_sha256
 from psycopg2.extras import NamedTupleCursor
 from werkzeug.utils import secure_filename
 import os
+import base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -68,13 +69,6 @@ def add_friend_to_database(current_user_id, friend_id):
         cursor.close()
         return False, f"Error sending friend request: {e}"
 
-def is_existing_pending_friendship(friendship_id, current_user_id):
-    cursor = db_connection.cursor()
-    cursor.execute("SELECT EXISTS(SELECT 1 FROM friendships WHERE id = %s AND friend_id = %s AND status = 'pending')", (friendship_id, current_user_id))
-    exists = cursor.fetchone()[0]
-    cursor.close()
-    return exists
-
 
 def add_friend(current_user_id, friend_username):
     friend = search_users_in_database(friend_username)
@@ -109,22 +103,6 @@ def find_user_by_id(user_id):
     user = cursor.fetchone()[1]
     cursor.close()
     return user
-
-def get_pending_friend_requests(user_id):
-    cursor = db_connection.cursor()
-    cursor.execute("SELECT sender_id FROM friendships WHERE friend_id = %s AND status = 'pending'", (user_id,))
-    pending_requests = cursor.fetchall()
-    cursor.close()
-
-    # Fetch the user information for each pending friend request
-    pending_requests_with_user_info = []
-    for request in pending_requests:
-        sender_id = request[0]
-        sender = find_user_by_id(sender_id)
-        if sender:
-            pending_requests_with_user_info.applicationend(sender)
-
-    return pending_requests_with_user_info
 
 def fetch_friends(user_id):
     try:
@@ -169,12 +147,27 @@ def get_private_messages(user_id, other_user_id):
     cursor.close()
     return messages
 
-def get_group_messages(group_id):
+def fetch_posts(privacy=None):
     cursor = db_connection.cursor()
-    cursor.execute("SELECT * FROM messages WHERE group_id = %s", (group_id,))
-    messages = cursor.fetchall()
+    query = """
+    SELECT user_id, content, privacy, created_at, media_data
+    FROM posts
+    ORDER BY created_at DESC;
+    """
+    cursor.execute(query, (privacy, privacy))
+    posts = []
+    for row in cursor.fetchall():
+        user_id, content, privacy, created_at, media_data = row
+        media_base64 = base64.b64encode(media_data).decode('utf-8') if media_data else None
+        posts.append({
+            "user_id": user_id,
+            "content": content,
+            "privacy": privacy,
+            "created_at": created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            "media_data": media_base64
+        })
     cursor.close()
-    return messages
+    return posts
 
 def get_media_type(filename):
     extension = filename.rsplit('.', 1)[1].lower()
@@ -373,7 +366,7 @@ def get_friend_list():
         friend_list = []
         for row in cursor.fetchall():
             friend_id, username, profile_picture = row
-            friend_list.applicationend({
+            friend_list.append({
                 'id': friend_id,
                 'name': username,
                 'profilePicture': profile_picture
@@ -416,29 +409,7 @@ def private_chatroom(friend_id):
     # Render the private chatroom template with the user and friend information
     return render_template('private_chatroom.html', user=user, friend=friend)
 
-@app.route('/api/friends/<int:friend_id>/username')
-@login_required
-def get_friend_username(friend_id):
-    cursor = db_connection.cursor()
-    cursor.execute(f"SELECT username FROM users WHERE id = {friend_id}")
-    friend_username = cursor.fetchone()
-    cursor.close()
-    return jsonify({'username': friend_username})
 
-@app.route('/group_chat/<int:group_id>')
-@login_required
-def group_chat(group_id):
-    # Fetch the current user's information from the database using the user_id from the session
-    user_id = session['user_id']
-    cursor = db_connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-    user = cursor.fetchone()
-    cursor.close()
-
-    # Get all messages in the group chat
-    messages = get_group_messages(group_id)
-
-    return render_template('group_chat.html', user=user, group_id=group_id, messages=messages)
 ######################################################################profile#######################################################################
 
 @app.route('/profile')
@@ -529,24 +500,38 @@ def create_post_api():
     media_file = request.files.get('media_file')
 
     if media_file:
-        filename = secure_filename(media_file.filename)
-        media_type = get_media_type(filename)
-        # Save the file to a desired directory (adjust the path accordingly)
-        media_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        media_data = media_file.read()  # Read the binary data of the file
+        media_type = get_media_type(media_file.filename)
     else:
+        media_data = None
         media_type = None
 
     # Insert the post into the database
     cursor = db_connection.cursor()
     insert_query = """
-    INSERT INTO posts (user_id, content, media_type, media_url, privacy)
+    INSERT INTO posts (user_id, content, media_type, media_data, privacy)
     VALUES (%s, %s, %s, %s, %s)
     """
-    cursor.execute(insert_query, (user_id, content, media_type, filename, privacy))
+    cursor.execute(insert_query, (user_id, content, media_type, media_data, privacy))
     db_connection.commit()
     cursor.close()
 
     return jsonify({"message": "Post created successfully!"})
+
+@app.route('/post', methods=['GET'])
+@login_required
+def show_all_posts():
+    return render_template('post.html')
+
+
+
+@app.route('/api/posts', methods=['GET'])
+@login_required
+def get_posts_api():
+    posts = fetch_posts()
+    return jsonify({"posts": posts})
+
+
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

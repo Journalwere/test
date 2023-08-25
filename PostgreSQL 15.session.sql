@@ -19,6 +19,8 @@ SELECT * FROM group_memberships;
 
 --@block
 SELECT * FROM posts;
+
+--@block
 SELECT * FROM likes;
 SELECT * FROM comments;
 SELECT * FROM shares;
