@@ -523,15 +523,12 @@ def create_post_api():
 def show_all_posts():
     return render_template('post.html')
 
-
-
 @app.route('/api/posts', methods=['GET'])
 @login_required
 def get_posts_api():
-    posts = fetch_posts()
+    privacy = request.args.get('privacy', None)  # Get privacy level from query parameter
+    posts = fetch_posts(privacy)
     return jsonify({"posts": posts})
-
-
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
