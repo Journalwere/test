@@ -147,14 +147,15 @@ def get_private_messages(user_id, other_user_id):
     cursor.close()
     return messages
 
-def fetch_posts(privacy=None):
+def fetch_posts(privacy_condition=None):
     cursor = db_connection.cursor()
     query = """
     SELECT user_id, content, privacy, created_at, media_data
     FROM posts
+    WHERE %s IS NULL OR %s = 'all' OR privacy = %s
     ORDER BY created_at DESC;
     """
-    cursor.execute(query, (privacy, privacy))
+    cursor.execute(query, (privacy_condition, privacy_condition, privacy_condition))
     posts = []
     for row in cursor.fetchall():
         user_id, content, privacy, created_at, media_data = row
@@ -524,10 +525,9 @@ def show_all_posts():
     return render_template('post.html')
 
 @app.route('/api/posts', methods=['GET'])
-@login_required
 def get_posts_api():
-    privacy = request.args.get('privacy', None)  # Get privacy level from query parameter
-    posts = fetch_posts(privacy)
+    privacy_condition = request.args.get('privacy_condition', None)
+    posts = fetch_posts(privacy_condition)
     return jsonify({"posts": posts})
 
 if __name__ == '__main__':

@@ -1,18 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const loadPostsButton = document.getElementById("loadPosts");
-    const privacySelect = document.getElementById("privacy");
     const postsDiv = document.getElementById("posts");
 
-    loadPostsButton.addEventListener("click", () => {
-        const privacy = privacySelect.value;
-        fetchPosts(privacy);
-    });
+    // Call fetchPosts without passing any privacy condition
+    fetchPosts();
 
-    function fetchPosts(privacy) {
-        let url = "/api/posts";
-        if (privacy) {
-            url += `?privacy=${privacy}`;
-        }
+    function fetchPosts() {
+        const url = "/api/posts";
 
         fetch(url)
             .then(response => response.json())
