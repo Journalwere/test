@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const postsDiv = document.getElementById("posts");
 
-    // Call fetchPosts without passing any privacy condition
     fetchPosts();
 
     function fetchPosts() {
@@ -23,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
             postsDiv.textContent = "No posts available.";
             return;
         }
-
+    
         for (const post of posts) {
             const postDiv = document.createElement("div");
             postDiv.classList.add("post");
@@ -32,13 +31,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 <p>Privacy: ${post.privacy}</p>
                 <p>Created at: ${post.created_at}</p>
             `;
-
+    
             if (post.media_data) {
-                const media = document.createElement("img");
-                media.src = `data:image/jpeg;base64,${post.media_data}`;
-                postDiv.appendChild(media);
+                const img = document.createElement("img");
+                img.src = `data:image/jpeg;base64,${post.media_data}`;
+                img.alt = "Image";
+                postDiv.appendChild(img);
+    
+                const video = document.createElement("video");
+                video.controls = true;
+                video.src = `data:video/mp4;base64,${post.media_data}`;
+                postDiv.appendChild(video);
             }
-
+    
             postsDiv.appendChild(postDiv);
         }
     }

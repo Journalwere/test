@@ -147,21 +147,28 @@ def get_private_messages(user_id, other_user_id):
     cursor.close()
     return messages
 
-def fetch_posts(privacy_condition=None):
+def fetch_posts(user_id, privacy_condition=None):
     cursor = db_connection.cursor()
     query = """
-    SELECT user_id, content, privacy, created_at, media_data
-    FROM posts
-    WHERE %s IS NULL OR %s = 'all' OR privacy = %s
-    ORDER BY created_at DESC;
+    SELECT p.user_id, p.content, p.privacy, p.created_at, p.media_data
+    FROM posts p
+    LEFT JOIN friendships f ON p.user_id = f.friend_id AND f.user_id = %s AND f.status = 'accepted'
+    WHERE (%s IS NULL OR %s = 'all' OR p.privacy = %s)
+    AND (
+        p.privacy = 'public' OR
+        (p.privacy = 'friends' AND (p.user_id = %s OR f.user_id IS NOT NULL)) OR
+        (p.privacy = 'private' AND p.user_id = %s)
+    )
+    ORDER BY p.created_at DESC;
     """
-    cursor.execute(query, (privacy_condition, privacy_condition, privacy_condition))
+    cursor.execute(query, (user_id, privacy_condition, privacy_condition, privacy_condition, user_id, user_id))
+    
     posts = []
     for row in cursor.fetchall():
-        user_id, content, privacy, created_at, media_data = row
+        author_id, content, privacy, created_at, media_data = row
         media_base64 = base64.b64encode(media_data).decode('utf-8') if media_data else None
         posts.append({
-            "user_id": user_id,
+            "user_id": author_id,
             "content": content,
             "privacy": privacy,
             "created_at": created_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -169,6 +176,8 @@ def fetch_posts(privacy_condition=None):
         })
     cursor.close()
     return posts
+
+
 
 def get_media_type(filename):
     extension = filename.rsplit('.', 1)[1].lower()
@@ -485,11 +494,6 @@ def message(data):
 def create_post():
     return render_template('create_post.html')
 
-@app.route('/create_post', methods=['GET'])
-@login_required
-def create_post_page():
-    return render_template('create_post.html')
-
 @app.route('/api/create_post', methods=['POST'])
 @login_required
 def create_post_api():
@@ -525,9 +529,13 @@ def show_all_posts():
     return render_template('post.html')
 
 @app.route('/api/posts', methods=['GET'])
+@login_required
 def get_posts_api():
+    user_id = session['user_id']
+    
     privacy_condition = request.args.get('privacy_condition', None)
-    posts = fetch_posts(privacy_condition)
+    posts = fetch_posts(user_id, privacy_condition)
+    
     return jsonify({"posts": posts})
 
 if __name__ == '__main__':
