@@ -4,7 +4,6 @@ from flask_socketio import SocketIO, join_room, emit, leave_room
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
-from models import Chatroom, ChatroomUser, Message
 from flask_cors import CORS
 from passlib.hash import pbkdf2_sha256
 from psycopg2.extras import NamedTupleCursor
