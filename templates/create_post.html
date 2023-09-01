@@ -5,29 +5,29 @@
 </head>
 <body>
     <h1>Create a New Post</h1>
-    <form id="create-post-form">
-        <label>
-            Content:
-            <textarea id="content"></textarea>
-        </label>
+    <form id="create-post-form" action="/api/create_post" method="POST" enctype="multipart/form-data">
+        <label for="content">Content:</label>
+        <textarea id="content" name="content"></textarea>
         <br />
-        <label>
-            Select Media File:
-            <input type="file" id="mediaFile" accept=".jpg, .jpeg, .png, .gif, .mp4, .mov" />
-        </label>
+
+        <label for="mediaFile">Select Media File:</label>
+        <input type="file" id="mediaFile" name="media_file" accept=".jpg, .jpeg, .png, .gif, .mp4, .mov" />
         <br />
-        <label>
-            Privacy:
-            <select id="privacy">
-                <option value="public">Public</option>
-                <option value="friends">Friends</option>
-                <option value="private">Private</option>
-            </select>
-        </label>
+
+        <label for="privacy">Privacy:</label>
+        <select id="privacy" name="privacy">
+            <option value="public">Public</option>
+            <option value="friends">Friends</option>
+            <option value="private">Private</option>
+        </select>
         <br />
+
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+
         <button type="button" id="create-post-btn">Create Post</button>
     </form>
-    <div id="response-message"></div>
     <script src="../static/create_post.js"></script>
+    <div id="response-message"></div>
 </body>
 </html>

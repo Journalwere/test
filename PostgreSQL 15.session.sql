@@ -6,6 +6,7 @@ SELECT * FROM friendships;
 --@block
 SELECT * FROM posts
 
+
 --@block 
 UPDATE friendships
 SET status = 'pending'

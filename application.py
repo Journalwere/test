@@ -177,8 +177,6 @@ def fetch_posts(user_id, privacy_condition=None):
     cursor.close()
     return posts
 
-
-
 def get_media_type(filename):
     extension = filename.rsplit('.', 1)[1].lower()
     if extension in ['jpg', 'jpeg', 'png', 'gif']:
