@@ -16,14 +16,8 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app, async_mode='gevent')
 CORS(app)
 
-# Use environment variables for database connection
-db_connection = psycopg2.connect(
-    user=os.environ['root'],
-    password=os.environ['UaZ4az5FCZMpHpP6'],
-    host=os.environ['messy-lemon-7egi.ctavmgpgm1uq.us-west-2.rds.amazonaws.com'],
-    port=os.environ['5432'],
-    database=os.environ['postgres']
-)
+database_url = os.environ['postgres://root:UaZ4az5FCZMpHpP6@messy-lemon-7egi.ctavmgpgm1uq.us-west-2.rds.amazonaws.com:5432/postgres']
+db_connection = psycopg2.connect(database_url)
 
 # Now, 'db_connection' is connected to your remote PostgreSQL database on Zeet.
 
