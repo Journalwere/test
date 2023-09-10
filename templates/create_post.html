@@ -2,8 +2,21 @@
 <html>
 <head>
     <title>Create Post</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="google" content="notranslate">
+    <meta name="google" content="nositelinkssearchbox">
+    <meta name="google" content="notranslate">
+    <meta name="google" content="nositelinkssearchbox">
+    <meta name="google" content="nositelinkssearchbox">
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <link rel="stylesheet" type="text/css" href="../static/create_post.css" />
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCpMuUHK_yqZOAReFP7dmxnoF4j7ANl__o&libraries=places"></script>
 </head>
 <body>
+
     <h1>Create a New Post</h1>
     <form id="create-post-form" action="/api/create_post" method="POST" enctype="multipart/form-data">
         <label for="content">Content:</label>
@@ -22,12 +35,19 @@
         </select>
         <br />
 
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location">
+        <div id="suggestions"></div>
+        
+        <!-- Hidden inputs to store latitude and longitude -->
         <input type="hidden" id="latitude" name="latitude">
         <input type="hidden" id="longitude" name="longitude">
 
         <button type="button" id="create-post-btn">Create Post</button>
     </form>
-    <script src="../static/create_post.js"></script>
+
     <div id="response-message"></div>
+
+    <script src="../static/create_post.js"></script>
 </body>
 </html>

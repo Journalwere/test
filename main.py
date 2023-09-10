@@ -16,11 +16,13 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app, async_mode='gevent')
 CORS(app)
 
-database_url = os.environ['postgres://root:UaZ4az5FCZMpHpP6@messy-lemon-7egi.ctavmgpgm1uq.us-west-2.rds.amazonaws.com:5432/postgres']
-db_connection = psycopg2.connect(database_url)
-
-# Now, 'db_connection' is connected to your remote PostgreSQL database on Zeet.
-
+# PostgreSQL connection configuration
+db_connection = psycopg2.connect(
+    user="postgres",
+    password="admin",
+    host="localhost",
+    database="postgres"
+)
 
 def login_required(f):
     @wraps(f)
@@ -492,31 +494,40 @@ def create_post():
 @app.route('/api/create_post', methods=['POST'])
 @login_required
 def create_post_api():
-    content = request.form.get('content')
-    privacy = request.form.get('privacy')
-    user_id = session['user_id']
+    try:
+        content = request.form.get('content')
+        privacy = request.form.get('privacy')
+        user_id = session['user_id']
 
-    # Get the uploaded file
-    media_file = request.files.get('media_file')
+        # Get the uploaded file
+        media_file = request.files.get('media_file')
 
-    if media_file:
-        media_data = media_file.read()  # Read the binary data of the file
-        media_type = get_media_type(media_file.filename)
-    else:
-        media_data = None
-        media_type = None
+        if media_file:
+            media_data = media_file.read()  # Read the binary data of the file
+            media_type = get_media_type(media_file.filename)
+        else:
+            media_data = None
+            media_type = None
 
-    # Insert the post into the database
-    cursor = db_connection.cursor()
-    insert_query = """
-    INSERT INTO posts (user_id, content, media_type, media_data, privacy)
-    VALUES (%s, %s, %s, %s, %s)
-    """
-    cursor.execute(insert_query, (user_id, content, media_type, media_data, privacy))
-    db_connection.commit()
-    cursor.close()
+        # Get latitude and longitude values
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
 
-    return jsonify({"message": "Post created successfully!"})
+        # Insert the post into the database with latitude and longitude
+        cursor = db_connection.cursor()
+        insert_query = """
+        INSERT INTO posts (user_id, content, media_type, media_data, privacy, latitude, longitude)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(insert_query, (user_id, content, media_type, media_data, privacy, latitude, longitude))
+        db_connection.commit()
+        cursor.close()
+
+        return jsonify({"message": "Post created successfully!"})
+
+    except Exception as e:
+        # Handle any exceptions, e.g., database errors or form validation errors
+        return jsonify({"error": str(e)})
 
 @app.route('/post', methods=['GET'])
 @login_required
@@ -532,6 +543,20 @@ def get_posts_api():
     posts = fetch_posts(user_id, privacy_condition)
     
     return jsonify({"posts": posts})
+
+@app.route('/api/get_lat_lng', methods=['GET'])
+@login_required
+def get_lat_lng():
+    cursor = db_connection.cursor()
+    query = "SELECT latitude, longitude FROM posts"
+    cursor.execute(query)
+    lat_lng_data = cursor.fetchall()
+    cursor.close()
+
+    # Convert the result to a list of dictionaries
+    lat_lng_list = [{"latitude": row[0], "longitude": row[1]} for row in lat_lng_data]
+
+    return jsonify(lat_lng_list)  # Return latitude and longitude data as a JSON response
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

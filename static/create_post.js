@@ -1,4 +1,22 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const locationInput = document.getElementById("location");
+    const suggestionsContainer = document.getElementById("suggestions");
+
+    const autocomplete = new google.maps.places.Autocomplete(locationInput);
+
+    autocomplete.addListener("place_changed", function() {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) {
+            return;
+        }
+
+        const latitude = place.geometry.location.lat();
+        const longitude = place.geometry.location.lng();
+
+        document.getElementById("latitude").value = latitude;
+        document.getElementById("longitude").value = longitude;
+    });
+
     const createPostBtn = document.getElementById("create-post-btn");
     const responseMessage = document.getElementById("response-message");
 
@@ -7,66 +25,27 @@ document.addEventListener("DOMContentLoaded", function () {
         const privacy = document.getElementById("privacy").value;
 
         const mediaFileInput = document.getElementById("mediaFile");
-        const selectedFile = mediaFileInput.files[0]; // Get the selected file
-        const mediaType = getMediaType(selectedFile); // Function to get media type
+        const selectedFile = mediaFileInput.files[0];
+        const mediaType = getMediaType(selectedFile);
 
         if (!mediaType) {
             responseMessage.textContent = "Unsupported media type!";
             return;
         }
 
-        // Get geolocation
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function (position) {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
-                    const formData = new FormData();
-                    formData.append("content", content);
-                    formData.append("media_type", mediaType);
-                    formData.append("media_file", selectedFile); // Append the file to FormData
-                    formData.append("privacy", privacy);
-                    formData.append("latitude", latitude); // Append latitude
-                    formData.append("longitude", longitude); // Append longitude
-
-                    // Send the form data to the server
-                    fetch("/api/create_post", {
-                        method: "POST",
-                        body: formData,
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            responseMessage.textContent = data.message;
-                        })
-                        .catch(error => {
-                            responseMessage.textContent = "Error creating post: " + error;
-                        });
-                },
-                function (error) {
-                    responseMessage.textContent = "Geolocation error: " + error.message;
-
-                    // Proceed without geolocation
-                    sendFormWithoutGeolocation(content, privacy, selectedFile, mediaType);
-                }
-            );
-        } else {
-            responseMessage.textContent = "Geolocation is not supported by this browser.";
-
-            // Proceed without geolocation
-            sendFormWithoutGeolocation(content, privacy, selectedFile, mediaType);
-        }
+        // Send form data without geolocation
+        sendFormWithGeolocation(content, privacy, selectedFile, mediaType);
     });
 
-    // Function to send form data without geolocation
-    function sendFormWithoutGeolocation(content, privacy, selectedFile, mediaType) {
+    function sendFormWithGeolocation(content, privacy, selectedFile, mediaType) {
         const formData = new FormData();
         formData.append("content", content);
         formData.append("media_type", mediaType);
-        formData.append("media_file", selectedFile); // Append the file to FormData
+        formData.append("media_file", selectedFile);
         formData.append("privacy", privacy);
+        formData.append("latitude", document.getElementById("latitude").value);
+        formData.append("longitude", document.getElementById("longitude").value);
 
-        // Send the form data to the server
         fetch("/api/create_post", {
             method: "POST",
             body: formData,
@@ -80,7 +59,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    // Function to determine media type based on file extension
     function getMediaType(file) {
         const extension = file.name.split('.').pop().toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
@@ -88,6 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (['mp4', 'mov'].includes(extension)) {
             return "video";
         }
-        return null; // Unsupported extension
+        return null;
     }
 });
