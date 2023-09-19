@@ -189,7 +189,7 @@ def get_media_type(filename):
 def home():
     return render_template('index.html')
 
-#############################################################LOGIN/REGISTER###########################################################################
+
 # User registration route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -266,7 +266,6 @@ def login():
             cursor.close()
 
     return render_template('login.html')
-######################################################################################################################################################
 
 # Main page route (restricted, user must be logged in to access)
 @app.route('/main')
@@ -279,7 +278,7 @@ def main_page():
 @login_required
 def friends_list():
     return render_template('friends_pending_list.html')
-###################################################################API#################################################################################
+
 # Route to handle the API request to find a user by username
 @app.route('/api/users/<username>', methods=['GET'])
 @login_required
@@ -396,7 +395,7 @@ def get_friends():
     else:
         return jsonify({'error': 'User not authenticated'}), 401
 
-##################################################################CHAT#################################################################################
+
 @app.route('/private_chat/<int:friend_id>')
 @login_required
 def private_chatroom(friend_id):
@@ -417,7 +416,6 @@ def private_chatroom(friend_id):
     return render_template('private_chatroom.html', user=user, friend=friend)
 
 
-######################################################################profile#######################################################################
 
 @app.route('/profile')
 @login_required
@@ -458,7 +456,7 @@ def logout():
     
     # Redirect the user to the login page
     return redirect(url_for('login'))
-######################################################################################################################################################
+
 
 @app.route('/friends', methods=['GET'])
 @login_required
@@ -548,8 +546,9 @@ def get_posts_api():
 @login_required
 def get_lat_lng():
     cursor = db_connection.cursor()
-    query = "SELECT latitude, longitude FROM posts"
-    cursor.execute(query)
+    user_id = session['user_id']
+    query = "SELECT latitude, longitude FROM posts WHERE user_id IN (SELECT friend_id FROM friendships WHERE user_id = %s)"
+    cursor.execute(query, (user_id,))
     lat_lng_data = cursor.fetchall()
     cursor.close()
 
@@ -557,6 +556,7 @@ def get_lat_lng():
     lat_lng_list = [{"latitude": row[0], "longitude": row[1]} for row in lat_lng_data]
 
     return jsonify(lat_lng_list)  # Return latitude and longitude data as a JSON response
+
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

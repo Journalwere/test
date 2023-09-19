@@ -43,8 +43,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 video.src = `data:video/mp4;base64,${post.media_data}`;
                 postDiv.appendChild(video);
             }
-    
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.addEventListener("click", () => deletePost(post.id));
+            postDiv.appendChild(deleteButton);
+
             postsDiv.appendChild(postDiv);
         }
+    }
+
+    function deletePost(postId) {
+        fetch('/api/delete_post', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ post_id: postId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.message);
+            // Optionally, remove the deleted post from the UI
+            const postElement = document.getElementById(`post_${postId}`);
+            if (postElement) {
+                postElement.remove();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
 });
