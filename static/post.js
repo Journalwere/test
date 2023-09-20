@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fetch(url)
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 displayPosts(data.posts);
             })
             .catch(error => {
@@ -24,6 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
         for (const post of posts) {
+
+            console.log("Post ID:", post.id); // Debug line
             const postDiv = document.createElement("div");
             postDiv.classList.add("post");
             postDiv.innerHTML = `
@@ -45,32 +48,33 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const deleteButton = document.createElement("button");
             deleteButton.textContent = "Delete";
-            deleteButton.addEventListener("click", () => deletePost(post.id));
+            deleteButton.addEventListener("click", () => {
+                console.log("Delete button clicked for post ID:", post.id); // Debug line
+                deletePost(post.id);
+            });
             postDiv.appendChild(deleteButton);
-
             postsDiv.appendChild(postDiv);
         }
     }
 
     function deletePost(postId) {
-        fetch('/api/delete_post', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ post_id: postId })
+        const url = `/delete_post/api/${postId}`;
+
+        fetch(url, {
+            method: 'DELETE',
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data.message);
-            // Optionally, remove the deleted post from the UI
-            const postElement = document.getElementById(`post_${postId}`);
-            if (postElement) {
-                postElement.remove();
+            if (data.message) {
+                console.log(data.message);
+            } else {
+                console.error("Error deleting post:", data.error);
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error("Error deleting post:", error);
         });
     }
+    
 });
+document.addEventListener("DOMContentLoaded", fetchPosts);

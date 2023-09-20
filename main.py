@@ -149,7 +149,7 @@ def get_private_messages(user_id, other_user_id):
 def fetch_posts(user_id, privacy_condition=None):
     cursor = db_connection.cursor()
     query = """
-    SELECT p.user_id, p.content, p.privacy, p.created_at, p.media_data
+    SELECT p.id, p.user_id, p.content, p.privacy, p.created_at, p.media_data
     FROM posts p
     LEFT JOIN friendships f ON p.user_id = f.friend_id AND f.user_id = %s AND f.status = 'accepted'
     WHERE (%s IS NULL OR %s = 'all' OR p.privacy = %s)
@@ -164,9 +164,10 @@ def fetch_posts(user_id, privacy_condition=None):
     
     posts = []
     for row in cursor.fetchall():
-        author_id, content, privacy, created_at, media_data = row
+        post_id, author_id, content, privacy, created_at, media_data = row
         media_base64 = base64.b64encode(media_data).decode('utf-8') if media_data else None
         posts.append({
+            "id": post_id,
             "user_id": author_id,
             "content": content,
             "privacy": privacy,
@@ -556,6 +557,17 @@ def get_lat_lng():
     lat_lng_list = [{"latitude": row[0], "longitude": row[1]} for row in lat_lng_data]
 
     return jsonify(lat_lng_list)  # Return latitude and longitude data as a JSON response
+
+@app.route('/delete_post/api/<int:post_id>', methods=['DELETE'])
+@login_required
+def delete_post(post_id):
+    cursor = db_connection.cursor()
+    cursor.execute('DELETE FROM posts WHERE id = %s', (post_id,))
+    
+    db_connection.commit()
+    cursor.close()
+
+    return jsonify({"message": "Post delete successfully!"})
 
 
 if __name__ == '__main__':
