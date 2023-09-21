@@ -561,13 +561,21 @@ def get_lat_lng():
 @app.route('/delete_post/api/<int:post_id>', methods=['DELETE'])
 @login_required
 def delete_post(post_id):
+    user_id = session['user_id']
     cursor = db_connection.cursor()
-    cursor.execute('DELETE FROM posts WHERE id = %s', (post_id,))
-    
-    db_connection.commit()
-    cursor.close()
 
-    return jsonify({"message": "Post delete successfully!"})
+    # Check if the current user is the owner of the post
+    cursor.execute('SELECT user_id FROM posts WHERE id = %s', (post_id,))
+    post_owner = cursor.fetchone()
+
+    if post_owner and post_owner[0] == user_id:
+        cursor.execute('DELETE FROM posts WHERE id = %s', (post_id,))
+        db_connection.commit()
+        cursor.close()
+        return jsonify({"message": "Post deleted successfully!"}), 200
+    else:
+        cursor.close()
+        return jsonify({"message": "You do not have permission to delete this post."}), 403
 
 
 if __name__ == '__main__':
