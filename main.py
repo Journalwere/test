@@ -151,16 +151,17 @@ def fetch_posts(user_id, privacy_condition=None):
     query = """
     SELECT p.id, p.user_id, p.content, p.privacy, p.created_at, p.media_data
     FROM posts p
-    LEFT JOIN friendships f ON p.user_id = f.friend_id AND f.user_id = %s AND f.status = 'accepted'
+    LEFT JOIN friendships f1 ON p.user_id = f1.friend_id AND f1.user_id = %s AND f1.status = 'accepted'
+    LEFT JOIN friendships f2 ON p.user_id = f2.user_id AND f2.friend_id = %s AND f2.status = 'accepted'
     WHERE (%s IS NULL OR %s = 'all' OR p.privacy = %s)
     AND (
         p.privacy = 'public' OR
-        (p.privacy = 'friends' AND (p.user_id = %s OR f.user_id IS NOT NULL)) OR
+        (p.privacy = 'friends' AND (p.user_id = %s OR f1.user_id IS NOT NULL OR f2.user_id IS NOT NULL)) OR
         (p.privacy = 'private' AND p.user_id = %s)
     )
     ORDER BY p.created_at DESC;
     """
-    cursor.execute(query, (user_id, privacy_condition, privacy_condition, privacy_condition, user_id, user_id))
+    cursor.execute(query, (user_id, user_id, privacy_condition, privacy_condition, privacy_condition, user_id, user_id))
     
     posts = []
     for row in cursor.fetchall():
@@ -176,6 +177,7 @@ def fetch_posts(user_id, privacy_condition=None):
         })
     cursor.close()
     return posts
+
 
 def get_media_type(filename):
     extension = filename.rsplit('.', 1)[1].lower()
@@ -546,17 +548,23 @@ def get_posts_api():
 @app.route('/api/get_lat_lng', methods=['GET'])
 @login_required
 def get_lat_lng():
-    cursor = db_connection.cursor()
     user_id = session['user_id']
-    query = "SELECT latitude, longitude FROM posts WHERE user_id IN (SELECT friend_id FROM friendships WHERE user_id = %s)"
-    cursor.execute(query, (user_id,))
+    cursor = db_connection.cursor()
+    
+    query = """
+    SELECT latitude, longitude, user_id
+    FROM posts 
+    WHERE user_id IN (SELECT friend_id FROM friendships WHERE user_id = %s)
+    OR (user_id = %s AND privacy = 'private')
+    """
+    cursor.execute(query, (user_id, user_id))
     lat_lng_data = cursor.fetchall()
     cursor.close()
 
     # Convert the result to a list of dictionaries
-    lat_lng_list = [{"latitude": row[0], "longitude": row[1]} for row in lat_lng_data]
+    lat_lng_list = [{"latitude": row[0], "longitude": row[1], "user_id": row[2]} for row in lat_lng_data]
 
-    return jsonify(lat_lng_list)  # Return latitude and longitude data as a JSON response
+    return jsonify(lat_lng_list)
 
 @app.route('/delete_post/api/<int:post_id>', methods=['DELETE'])
 @login_required
@@ -579,4 +587,4 @@ def delete_post(post_id):
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    app.run(debug=True)

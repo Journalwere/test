@@ -48,6 +48,7 @@ function addMarkersToMap(data) {
               map: map,
               title: "Location"
           });
+          console.log(marker);
       }
   });
 }
