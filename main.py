@@ -149,24 +149,26 @@ def get_private_messages(user_id, other_user_id):
 def fetch_posts(user_id, privacy_condition=None):
     cursor = db_connection.cursor()
     query = """
-    SELECT p.user_id, p.content, p.privacy, p.created_at, p.media_data
+    SELECT p.id, p.user_id, p.content, p.privacy, p.created_at, p.media_data
     FROM posts p
-    LEFT JOIN friendships f ON p.user_id = f.friend_id AND f.user_id = %s AND f.status = 'accepted'
+    LEFT JOIN friendships f1 ON p.user_id = f1.friend_id AND f1.user_id = %s AND f1.status = 'accepted'
+    LEFT JOIN friendships f2 ON p.user_id = f2.user_id AND f2.friend_id = %s AND f2.status = 'accepted'
     WHERE (%s IS NULL OR %s = 'all' OR p.privacy = %s)
     AND (
         p.privacy = 'public' OR
-        (p.privacy = 'friends' AND (p.user_id = %s OR f.user_id IS NOT NULL)) OR
+        (p.privacy = 'friends' AND (p.user_id = %s OR f1.user_id IS NOT NULL OR f2.user_id IS NOT NULL)) OR
         (p.privacy = 'private' AND p.user_id = %s)
     )
     ORDER BY p.created_at DESC;
     """
-    cursor.execute(query, (user_id, privacy_condition, privacy_condition, privacy_condition, user_id, user_id))
+    cursor.execute(query, (user_id, user_id, privacy_condition, privacy_condition, privacy_condition, user_id, user_id))
     
     posts = []
     for row in cursor.fetchall():
-        author_id, content, privacy, created_at, media_data = row
+        post_id, author_id, content, privacy, created_at, media_data = row
         media_base64 = base64.b64encode(media_data).decode('utf-8') if media_data else None
         posts.append({
+            "id": post_id,
             "user_id": author_id,
             "content": content,
             "privacy": privacy,
@@ -175,6 +177,7 @@ def fetch_posts(user_id, privacy_condition=None):
         })
     cursor.close()
     return posts
+
 
 def get_media_type(filename):
     extension = filename.rsplit('.', 1)[1].lower()
@@ -189,7 +192,7 @@ def get_media_type(filename):
 def home():
     return render_template('index.html')
 
-#############################################################LOGIN/REGISTER###########################################################################
+
 # User registration route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -266,7 +269,6 @@ def login():
             cursor.close()
 
     return render_template('login.html')
-######################################################################################################################################################
 
 # Main page route (restricted, user must be logged in to access)
 @app.route('/main')
@@ -279,7 +281,7 @@ def main_page():
 @login_required
 def friends_list():
     return render_template('friends_pending_list.html')
-###################################################################API#################################################################################
+
 # Route to handle the API request to find a user by username
 @app.route('/api/users/<username>', methods=['GET'])
 @login_required
@@ -396,7 +398,7 @@ def get_friends():
     else:
         return jsonify({'error': 'User not authenticated'}), 401
 
-##################################################################CHAT#################################################################################
+
 @app.route('/private_chat/<int:friend_id>')
 @login_required
 def private_chatroom(friend_id):
@@ -417,7 +419,6 @@ def private_chatroom(friend_id):
     return render_template('private_chatroom.html', user=user, friend=friend)
 
 
-######################################################################profile#######################################################################
 
 @app.route('/profile')
 @login_required
@@ -458,7 +459,7 @@ def logout():
     
     # Redirect the user to the login page
     return redirect(url_for('login'))
-######################################################################################################################################################
+
 
 @app.route('/friends', methods=['GET'])
 @login_required
@@ -547,16 +548,43 @@ def get_posts_api():
 @app.route('/api/get_lat_lng', methods=['GET'])
 @login_required
 def get_lat_lng():
+    user_id = session['user_id']
     cursor = db_connection.cursor()
-    query = "SELECT latitude, longitude FROM posts"
-    cursor.execute(query)
+    
+    query = """
+    SELECT latitude, longitude, user_id
+    FROM posts 
+    WHERE user_id IN (SELECT friend_id FROM friendships WHERE user_id = %s)
+    OR (user_id = %s AND privacy = 'private')
+    """
+    cursor.execute(query, (user_id, user_id))
     lat_lng_data = cursor.fetchall()
     cursor.close()
 
     # Convert the result to a list of dictionaries
-    lat_lng_list = [{"latitude": row[0], "longitude": row[1]} for row in lat_lng_data]
+    lat_lng_list = [{"latitude": row[0], "longitude": row[1], "user_id": row[2]} for row in lat_lng_data]
 
-    return jsonify(lat_lng_list)  # Return latitude and longitude data as a JSON response
+    return jsonify(lat_lng_list)
+
+@app.route('/delete_post/api/<int:post_id>', methods=['DELETE'])
+@login_required
+def delete_post(post_id):
+    user_id = session['user_id']
+    cursor = db_connection.cursor()
+
+    # Check if the current user is the owner of the post
+    cursor.execute('SELECT user_id FROM posts WHERE id = %s', (post_id,))
+    post_owner = cursor.fetchone()
+
+    if post_owner and post_owner[0] == user_id:
+        cursor.execute('DELETE FROM posts WHERE id = %s', (post_id,))
+        db_connection.commit()
+        cursor.close()
+        return jsonify({"message": "Post deleted successfully!"}), 200
+    else:
+        cursor.close()
+        return jsonify({"message": "You do not have permission to delete this post."}), 403
+
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    app.run(debug=True)

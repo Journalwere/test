@@ -22,3 +22,6 @@ uuid==1.30
 Werkzeug==2.3.6
 zope.event==5.0
 zope.interface==6.0
+python-dotenv>=0.19.2
+authlib>=1.0
+requests>=2.27.1
