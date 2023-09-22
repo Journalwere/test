@@ -550,21 +550,20 @@ def get_posts_api():
 def get_lat_lng():
     user_id = session['user_id']
     cursor = db_connection.cursor()
-    
     query = """
     SELECT latitude, longitude, user_id
-    FROM posts 
-    WHERE user_id IN (SELECT friend_id FROM friendships WHERE user_id = %s)
-    OR (user_id = %s AND privacy = 'private')
+    FROM posts
+    WHERE (user_id IN (SELECT friend_id FROM friendships WHERE user_id = %s)
+    OR (user_id = %s AND privacy = 'public'))
+    OR user_id = %s
     """
-    cursor.execute(query, (user_id, user_id))
+    cursor.execute(query, (user_id, user_id, user_id))
     lat_lng_data = cursor.fetchall()
     cursor.close()
-
     # Convert the result to a list of dictionaries
     lat_lng_list = [{"latitude": row[0], "longitude": row[1], "user_id": row[2]} for row in lat_lng_data]
-
     return jsonify(lat_lng_list)
+
 
 @app.route('/delete_post/api/<int:post_id>', methods=['DELETE'])
 @login_required
