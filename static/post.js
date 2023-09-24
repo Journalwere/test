@@ -36,15 +36,17 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
     
             if (post.media_data) {
-                const img = document.createElement("img");
-                img.src = `data:image/jpeg;base64,${post.media_data}`;
-                img.alt = "Image";
-                postDiv.appendChild(img);
-    
-                const video = document.createElement("video");
-                video.controls = true;
-                video.src = `data:video/mp4;base64,${post.media_data}`;
-                postDiv.appendChild(video);
+                if (post.media_type === 'image') {
+                    const img = document.createElement("img");
+                    img.src = `data:image/jpeg;base64,${post.media_data}`;
+                    img.alt = "Image";
+                    postDiv.appendChild(img);
+                } else if (post.media_type === 'video') {
+                    const video = document.createElement("video");
+                    video.controls = true;
+                    video.src = `data:video/mp4;base64,${post.media_data}`;
+                    postDiv.appendChild(video);
+                }
             }
             const deleteButton = document.createElement("button");
             deleteButton.textContent = "Delete";
