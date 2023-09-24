@@ -167,9 +167,13 @@ def fetch_posts(user_id, privacy_condition=None):
     for row in cursor.fetchall():
         post_id, author_id, content, privacy, created_at, media_data, media_type= row
         media_base64 = base64.b64encode(media_data).decode('utf-8') if media_data else None
+
+        author_username = find_user_by_id(author_id)
+
         posts.append({
             "id": post_id,
             "user_id": author_id,
+            "username": author_username,
             "content": content,
             "privacy": privacy,
             "created_at": created_at.strftime('%Y-%m-%d %H:%M:%S'),

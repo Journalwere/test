@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const postDiv = document.createElement("div");
             postDiv.classList.add("post");
             postDiv.innerHTML = `
+                <h3>Author: ${post.username}</h3> 
                 <h2>${post.content}</h2>
                 <p>Privacy: ${post.privacy}</p>
                 <p>Created at: ${post.created_at}</p>
