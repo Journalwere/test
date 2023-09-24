@@ -18,9 +18,9 @@ CORS(app)
 
 # PostgreSQL connection configuration
 db_connection = psycopg2.connect(
-    user="root",
-    password="UaZ4az5FCZMpHpP6",
-    host="messy-lemon-7egi.ctavmgpgm1uq.us-west-2.rds.amazonaws.com",
+    user="postgres",
+    password="admin",
+    host="localhost",
     database="postgres"
 )
 
@@ -149,7 +149,7 @@ def get_private_messages(user_id, other_user_id):
 def fetch_posts(user_id, privacy_condition=None):
     cursor = db_connection.cursor()
     query = """
-    SELECT p.id, p.user_id, p.content, p.privacy, p.created_at, p.media_data
+    SELECT p.id, p.user_id, p.content, p.privacy, p.created_at, p.media_data, p.media_type
     FROM posts p
     LEFT JOIN friendships f1 ON p.user_id = f1.friend_id AND f1.user_id = %s AND f1.status = 'accepted'
     LEFT JOIN friendships f2 ON p.user_id = f2.user_id AND f2.friend_id = %s AND f2.status = 'accepted'
@@ -165,7 +165,7 @@ def fetch_posts(user_id, privacy_condition=None):
     
     posts = []
     for row in cursor.fetchall():
-        post_id, author_id, content, privacy, created_at, media_data = row
+        post_id, author_id, content, privacy, created_at, media_data, media_type= row
         media_base64 = base64.b64encode(media_data).decode('utf-8') if media_data else None
         posts.append({
             "id": post_id,
@@ -173,7 +173,8 @@ def fetch_posts(user_id, privacy_condition=None):
             "content": content,
             "privacy": privacy,
             "created_at": created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            "media_data": media_base64
+            "media_data": media_base64,
+            "media_type": media_type
         })
     cursor.close()
     return posts
