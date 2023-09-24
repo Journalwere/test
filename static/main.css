@@ -12,7 +12,57 @@ html,
   margin: 0;
   padding: 0;
 }
+.button1 {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 1.5cm; /* Adjust the width as needed */
+  height: 1.5cm; /* Adjust the height as needed */
+  font-size: 0.7cm; /* Adjust font size to fit the button */
+  border-radius: 8px; /* Rounded edges */
+  z-index: 1001; /* Ensure the button is on top of other elements */
+}
 
+.button2 {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 1.5cm; /* Adjust the width as needed */
+  height: 1.5cm; /* Adjust the height as needed */
+  font-size: 0.7cm; /* Adjust font size to fit the button */
+  border-radius: 8px; /* Rounded edges */
+  z-index: 1001; /* Ensure the button is on top of other elements */
+}
 
+/* CSS */
+.button3 {
+position: absolute;
+bottom: 10px; /* Adjust the distance from the bottom as needed */
+left: 50%;
+transform: translateX(-50%);
+display: inline-block;
+outline: 0;
+border: 0;
+cursor: pointer;
+border-radius: 8px;
+padding: 14px 24px 16px;
+font-size: 18px;
+font-weight: 700;
+line-height: 1;
+background: transparent;
+color: #000000;
+box-shadow: 0 0 0 3px #000000 inset;
+z-index: 1001;
+}
 
-
+.button4 {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  width: 1.5cm; /* Adjust the width as needed */
+  height: 1.5cm; /* Adjust the height as needed */
+  font-size: 0.7cm; /* Adjust font size to fit the button */
+  border-radius: 8px; /* Rounded edges */
+  z-index: 1001; /* Ensure the button is on top of other elements */
+}
