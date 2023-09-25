@@ -453,14 +453,31 @@ def update_profile():
     email = request.form['email']
     bio = request.form['bio']
 
-    # Update the user's information in the database using the user_id from the session
-    user_id = session['user_id']
+    # Create a cursor to interact with the database
     cursor = db_connection.cursor()
-    cursor.execute("UPDATE users SET username = %s, email = %s, bio = %s WHERE id = %s", (username, email, bio, user_id))
+
+    # Check if the new username is already taken by another user
+    cursor.execute("SELECT * FROM users WHERE username = %s AND id != %s", (username, session['user_id']))
+    existing_user = cursor.fetchone()
+    if existing_user:
+        cursor.close()
+        return render_template('profile.html', error_message='Username already taken.', 
+                               username=username, email=email, bio=bio)
+
+    # Check if the new email is already associated with another user
+    cursor.execute("SELECT * FROM users WHERE email = %s AND id != %s", (email, session['user_id']))
+    existing_email = cursor.fetchone()
+    if existing_email:
+        cursor.close()
+        return render_template('profile.html', error_message='Email already associated with another user.', 
+                               username=username, email=email, bio=bio)
+
+    # Update the user's information in the database
+    cursor.execute("UPDATE users SET username = %s, email = %s, bio = %s WHERE id = %s", 
+                   (username, email, bio, session['user_id']))
     db_connection.commit()
     cursor.close()
 
-    # Redirect the user back to the profile page after the update
     return redirect(url_for('profile'))
 
 @app.route('/logout')
