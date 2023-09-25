@@ -15,6 +15,7 @@
     <script type="module" src="../static/main.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCx2WMtxuCdiH5LGcQnVJaQvKq5S5Yj0FQ&region=US&language=en&callback=initMap" async defer></script>
   </head>
+  <div class="button-container">
   <body>
     <form action="/friends_list" method="POST" class="button1">
       <input type="submit" value="Add friends">
@@ -35,8 +36,8 @@
     <form action="/profile" method="GET" class="button5">
       <input type="submit" value="profile">
     </form>
-
     <!--The div element for the map -->
-    <div id="map"></div>
+  </div>
+  <div id="map"></div>
   </body>
 </html>
