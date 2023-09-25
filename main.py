@@ -216,13 +216,19 @@ def register():
         if len(password) < 8:
             return render_template('register.html', error_message='Password must be at least 8 characters long.')
 
-        # Hash the password
-        hashed_password = pbkdf2_sha256.hash(password)
-
         # Create a cursor to interact with the database
         cursor = db_connection.cursor()
 
         try:
+            # Check if username already exists
+            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+            existing_user = cursor.fetchone()
+            if existing_user:
+                return render_template('register.html', error_message='Username already taken.')
+
+            # Hash the password
+            hashed_password = pbkdf2_sha256.hash(password)
+
             # Execute the INSERT query with prepared statement
             cursor.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, hashed_password))
             db_connection.commit()
@@ -230,7 +236,6 @@ def register():
             db_connection.rollback()
             # Handle the exception or show an error message
             print(f"Error during registration: {e}")
-
         finally:
             # Close the cursor
             cursor.close()
@@ -239,6 +244,7 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html')
+
 
 
 # User login route
