@@ -45,19 +45,36 @@ document.addEventListener("DOMContentLoaded", function () {
         formData.append("privacy", privacy);
         formData.append("latitude", document.getElementById("latitude").value);
         formData.append("longitude", document.getElementById("longitude").value);
-
-        fetch("/api/create_post", {
-            method: "POST",
-            body: formData,
-        })
-            .then(response => response.json())
-            .then(data => {
-                responseMessage.textContent = data.message;
-            })
-            .catch(error => {
-                responseMessage.textContent = "Error creating post: " + error;
-            });
+    
+        const progressBar = document.getElementById("progress-bar");
+        const progressBarContainer = document.getElementById("progress-bar-container");
+        progressBarContainer.style.display = "block";
+    
+        const xhr = new XMLHttpRequest();
+    
+        xhr.upload.addEventListener("progress", function(event) {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                progressBar.style.width = percentComplete + "%";
+                progressBar.textContent = Math.round(percentComplete) + "%";
+            }
+        });
+    
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    responseMessage.textContent = "Post created successfully!";
+                } else {
+                    responseMessage.textContent = "Error creating post: " + xhr.responseText;
+                }
+                progressBarContainer.style.display = "none";
+            }
+        };
+    
+        xhr.open("POST", "/api/create_post", true);
+        xhr.send(formData);
     }
+    
 
     function getMediaType(file) {
         const extension = file.name.split('.').pop().toLowerCase();
