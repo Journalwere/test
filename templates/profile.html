@@ -5,6 +5,9 @@
 </head>
 <body>
     <h2>Welcome, {{ username }}!</h2>
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
     <img src="{{ profile_image }}" alt="Profile Image">
     <form action="{{ url_for('update_profile') }}" method="post">
         <label for="username">Username:</label>
