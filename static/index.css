@@ -1,0 +1,120 @@
+/* Reset some default styles */
+/* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+    line-height: 1.6;
+    background-image: url('../static/imgs/background.jpg'); /* Replace with your background image */
+    background-size: cover;
+    background-position: center center;
+    overflow: hidden;
+  }
+  
+  .earth-container {
+    position: relative;
+    z-index: 1; /* Add this line to set z-index */
+  }
+  
+  .earth {
+    position: absolute;
+    width: 800px; /* Adjust size as needed */
+    height: 800px; /* Adjust size as needed */
+    background-image: url('../static/imgs/as10-34-5013.jpg'); /* Replace with your 3D Earth image */
+    background-size: cover;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+  }
+  
+  
+  /* Add your existing styles here */
+  /* ... */
+  
+  
+  header {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  header h1 {
+    font-size: 2em;
+  }
+  
+  main {
+    padding: 50px;
+  }
+  
+  .hero {
+    text-align: center;
+  }
+  
+  .hero h2 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+  }
+  
+  .hero p {
+    font-size: 1.2em;
+    margin-bottom: 40px;
+  }
+  
+  .cta-button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    text-decoration: none;
+    background-color: #00bcd4;
+    color: #ffffff;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+  
+  .cta-button:hover {
+    background-color: #0097a7;
+  }
+  
+  .features {
+    text-align: center;
+  }
+  
+  .features h2 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+  }
+  
+  .feature-card {
+    margin-bottom: 50px;
+  }
+  
+  .feature-card img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .feature-card h3 {
+    font-size: 1.8em;
+    margin: 20px 0;
+  }
+  
+  .feature-card p {
+    font-size: 1.2em;
+  }
+  
+  footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #333333;
+  }
+  
+  footer p {
+    font-size: 1em;
+  }
+  
