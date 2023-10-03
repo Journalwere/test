@@ -18,10 +18,10 @@ CORS(app)
 
 # PostgreSQL connection configuration
 db_connection = psycopg2.connect(
-    user="elygpkytwjpkua",
-    password="b9c7f7422fce75e42ee160c04caa8fa8ad0612100ad298032d9a29995ffa9856",
-    host="ec2-54-234-13-16.compute-1.amazonaws.com",
-    database="denqj7bv25sllf"
+    user="eynwumuznmxuno",
+    password="5d1818f12abbe0872482973e9451a1b7ff53d6aa5f389b66428dfeefab4ce066",
+    host="ec2-54-86-180-157.compute-1.amazonaws.com",
+    database="d9hcfh38ki4cqk"
 )
 
 def login_required(f):
